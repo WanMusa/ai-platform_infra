@@ -46,6 +46,14 @@ jobs:
             cd "$DEPLOY_DIR"
             
             docker compose pull
+
+            if ! docker network inspect ai_platform >/dev/null 2>&1; then
+                echo "Creating ai_platform network..."
+                docker network create ai_platform
+            else
+                echo "ai_platform network already exists"
+            fi
+
             docker compose up -d --remove-orphans
 
             echo "=== AFTER ==="
