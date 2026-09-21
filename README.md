@@ -1,14 +1,5 @@
-# ai-platform_gmail-sorter
-A Gmail agentic sorter that manages gmail and sends summary through to Telegram (auto deployment)
+# ai-platform_infra
+The infrastructure for shared services for the ai platform
 
-# Gmail Sorter
-
-Event-driven Gmail assistant using:
-
-- LangGraph
-- Gmail API
-- Google Calendar API
-- Telegram
-- SQLite
-- Docker
-- GitHub Actions
+# This includes:
+-postgreSQL
