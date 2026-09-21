@@ -39,11 +39,13 @@ jobs:
                 echo "=== BEFORE ==="
                 git rev-parse HEAD
 
-                git pull origin main
+                git fetch origin
+                git reset --hard origin/main
             fi
 
             cd "$DEPLOY_DIR"
-
+            
+            docker compose pull
             docker compose up -d --remove-orphans
 
             echo "=== AFTER ==="
