@@ -15,18 +15,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d
-pgadmin:
-  image: dpage/pgadmin4
+  pgadmin:
+    image: dpage/pgadmin4
 
-  container_name: pgadmin
+    container_name: pgadmin
 
-  restart: unless-stopped
+    restart: unless-stopped
 
-  env_file:
-    - .env
+    env_file:
+      - .env
 
-  ports:
-    - "8080:80"
+    ports:
+      - "8080:80"
 
 volumes:
   postgres_data:
