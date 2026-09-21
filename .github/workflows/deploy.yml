@@ -30,7 +30,7 @@ jobs:
                 echo "=== FIRST DEPLOYMENT ==="
                 echo "Repository not found. Cloning..."
 
-                git clone <YOUR-REPO-URL> "$DEPLOY_DIR"
+                git clone https://github.com/WanMusa/ai-platform_infra.git "$DEPLOY_DIR"
             else
                 echo "=== EXISTING DEPLOYMENT ==="
 
