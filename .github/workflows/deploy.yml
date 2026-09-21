@@ -19,13 +19,30 @@ jobs:
 
           script: |
             set -e
-            
-            cd ~/projects/ai-platform_infra
 
-            echo "=== BEFORE ==="
-            git rev-parse HEAD
+            DEPLOY_DIR="$HOME/projects/ai-platform_infra"
 
-            git pull origin main
+            # Create parent directory if it doesn't exist
+            mkdir -p "$HOME/projects"
+
+            # First deployment: clone repo
+            if [ ! -d "$DEPLOY_DIR/.git" ]; then
+                echo "=== FIRST DEPLOYMENT ==="
+                echo "Repository not found. Cloning..."
+
+                git clone <YOUR-REPO-URL> "$DEPLOY_DIR"
+            else
+                echo "=== EXISTING DEPLOYMENT ==="
+
+                cd "$DEPLOY_DIR"
+
+                echo "=== BEFORE ==="
+                git rev-parse HEAD
+
+                git pull origin main
+            fi
+
+            cd "$DEPLOY_DIR"
 
             docker compose up -d --remove-orphans
 
