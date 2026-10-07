@@ -1,4 +1,47 @@
 services:
+  reverse-proxy:
+    image: nginxproxy/nginx-proxy:1.7
+
+    container_name: reverse-proxy
+
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+    networks:
+      - ai_platform
+
+  reverse-proxy-acme:
+    image: nginxproxy/acme-companion:2.4
+
+    container_name: reverse-proxy-acme
+
+    restart: unless-stopped
+
+    depends_on:
+      - reverse-proxy
+
+    environment:
+      DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL}
+
+    volumes:
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - ai_platform
+
   postgres:
     image: postgres:17
 
@@ -30,12 +73,16 @@ services:
       - .env
 
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
 
     networks:
       - ai_platform
 
 volumes:
+  certs:
+  vhost:
+  html:
+  acme:
   postgres_data:
 
 networks:
