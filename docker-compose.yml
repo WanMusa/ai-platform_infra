@@ -30,6 +30,7 @@ services:
       - reverse-proxy
 
     environment:
+      NGINX_PROXY_CONTAINER: reverse-proxy
       DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL}
 
     volumes:
