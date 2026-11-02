@@ -6,7 +6,33 @@ on:
       - main
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose --env-file .env.example config --no-env-resolution --quiet
+
+      - name: Validate Alloy config
+        run: >-
+          docker run --rm
+          -v "$PWD/observability/alloy.alloy:/etc/alloy/config.alloy:ro"
+          grafana/alloy:v1.21.3 fmt /etc/alloy/config.alloy >/dev/null
+
+      - name: Validate Loki config
+        run: >-
+          docker run --rm
+          -v "$PWD/observability/loki-config.yml:/etc/loki/config.yml:ro"
+          grafana/loki:3.7.9 -config.file=/etc/loki/config.yml -verify-config=true
+
+      - name: Validate provisioned dashboard JSON
+        run: python -m json.tool observability/grafana/dashboards/resume-builder-v3.json > /dev/null
+
   deploy:
+    needs: validate
     runs-on: ubuntu-latest
 
     steps:

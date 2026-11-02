@@ -34,6 +34,33 @@ Copy `.env.example` to `.env` and set real values:
 This repo is designed to be deployed fully via GitHub Actions.
 Push to `main` and the workflow will run `docker compose up -d --remove-orphans` on the VPS.
 
+## Observability
+
+Grafana, Loki and Alloy run as shared infrastructure services. Alloy reads logs
+only from containers explicitly labeled for collection, through a restricted
+Docker socket proxy. The initial `Resume Builder V3` dashboard is provisioned in
+the `Applications` folder. Add the same labels to another app's Compose services
+and create a dashboard JSON file to onboard it later.
+
+Loki stores logs in the persistent `loki_data` volume and deletes them after seven
+days. The initial dashboard covers V3 worker logs; events include job ID, stage,
+duration and sanitized error type, not resume text, prompts, API responses or
+credentials.
+
+Before the first deployment, set `GRAFANA_ADMIN_PASSWORD` in the VPS `.env` to a
+unique strong password. Grafana listens on the VPS loopback interface only; it is
+not registered with the public reverse proxy. After deployment, install and join
+the VPS to your Tailscale tailnet if you have not already, then run:
+
+```bash
+sudo tailscale serve --bg 3000
+sudo tailscale serve status
+```
+
+Use the HTTPS `*.ts.net` address shown by `tailscale serve status` from your
+tailnet devices. If prompted, enable HTTPS certificates for the tailnet. Do not
+enable Funnel or add a public `VIRTUAL_HOST` for Grafana.
+
 ## How App Repos Attach to HTTPS Automatically
 
 For each app container in the same `ai_platform` Docker network, add:

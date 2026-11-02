@@ -1,0 +1,38 @@
+discovery.docker "opt_in_apps" {
+  host = "tcp://docker-socket-proxy:2375"
+  refresh_interval = "15s"
+
+  filter {
+    name = "label"
+    values = ["com.ai-platform.observability=true"]
+  }
+}
+
+discovery.relabel "opt_in_apps" {
+  targets = discovery.docker.opt_in_apps.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_ai_platform_app"]
+    target_label = "app"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label = "service"
+  }
+}
+
+loki.source.docker "opt_in_apps" {
+  host = "tcp://docker-socket-proxy:2375"
+  targets = discovery.relabel.opt_in_apps.output
+  labels = {
+    environment = "production",
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
