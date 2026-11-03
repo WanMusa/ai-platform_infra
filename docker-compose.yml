@@ -92,6 +92,8 @@ services:
     networks:
       - observability
     read_only: true
+    tmpfs:
+      - /tmp
     security_opt:
       - no-new-privileges:true
 
