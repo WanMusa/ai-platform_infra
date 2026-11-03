@@ -16,6 +16,23 @@ jobs:
       - name: Validate Docker Compose
         run: docker compose --env-file .env.example config --no-env-resolution --quiet
 
+      - name: Keep Grafana private behind Cloudflare Tunnel
+        run: |
+          docker compose --env-file .env.example config --format json --no-env-resolution | python -c '
+          import json
+          import sys
+
+          config = json.load(sys.stdin)
+          grafana = config["services"]["grafana"]
+          tunnel = config["services"]["cloudflared"]
+          assert not grafana.get("ports")
+          assert config["networks"]["observability"].get("internal") is True
+          assert "observability" in tunnel["networks"]
+          assert "tunnel_egress" in tunnel["networks"]
+          assert tunnel["environment"]["TUNNEL_TOKEN"]
+          print("Grafana is private and routed through Cloudflare Tunnel")
+          '
+
       - name: Validate Alloy config
         run: >-
           docker run --rm

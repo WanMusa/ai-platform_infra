@@ -47,19 +47,34 @@ days. The initial dashboard covers V3 worker logs; events include job ID, stage,
 duration and sanitized error type, not resume text, prompts, API responses or
 credentials.
 
-Before the first deployment, set `GRAFANA_ADMIN_PASSWORD` in the VPS `.env` to a
-unique strong password. Grafana listens on the VPS loopback interface only; it is
-not registered with the public reverse proxy. After deployment, install and join
-the VPS to your Tailscale tailnet if you have not already, then run:
+### Private Grafana access through Cloudflare
 
-```bash
-sudo tailscale serve --bg 3000
-sudo tailscale serve status
-```
+Grafana has no published host port and is not registered with the public reverse
+proxy. The `cloudflared` container joins the internal observability network to
+reach Grafana and a separate egress network to establish its outbound tunnel.
+No Oracle ingress port is needed for the tunnel.
 
-Use the HTTPS `*.ts.net` address shown by `tailscale serve status` from your
-tailnet devices. If prompted, enable HTTPS certificates for the tailnet. Do not
-enable Funnel or add a public `VIRTUAL_HOST` for Grafana.
+One-time Cloudflare setup:
+
+1. In Cloudflare Zero Trust, create a remotely managed tunnel for this VPS and
+	copy its tunnel token.
+2. Before adding a public hostname route, create an Access application for
+	`grafana.musakamil.com`. Add an Allow policy for your email address and choose
+	an authentication method such as a one-time PIN or Google login. Access
+	applications deny requests unless a policy allows them.
+3. Add a public hostname to the tunnel: `grafana.musakamil.com`, service type
+	HTTP, origin `http://grafana:3000`.
+4. On the VPS, set `GRAFANA_ADMIN_PASSWORD`, `GRAFANA_HOSTNAME`, and
+	`CLOUDFLARE_TUNNEL_TOKEN` in `$HOME/projects/ai-platform_infra/.env`. Keep the
+	tunnel token secret; do not commit it to Git.
+5. Push the infra changes to `main`. GitHub Actions validates and deploys the
+	stack. Then browse to `https://grafana.musakamil.com` and authenticate through
+	Cloudflare Access.
+
+Cloudflare creates the tunnel DNS record for an active Cloudflare-managed zone.
+Do not enable a public DNS-only origin route, add Grafana to `VIRTUAL_HOST`, or
+open Grafana's port in the Oracle firewall. This keeps the origin reachable only
+through the authenticated Cloudflare path.
 
 ## How App Repos Attach to HTTPS Automatically
 

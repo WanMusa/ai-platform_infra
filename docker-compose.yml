@@ -131,8 +131,8 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_LOG_MODE: console
-    ports:
-      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+      GF_SERVER_DOMAIN: ${GRAFANA_HOSTNAME:-grafana.musakamil.com}
+      GF_SERVER_ROOT_URL: https://${GRAFANA_HOSTNAME:-grafana.musakamil.com}/
     volumes:
       - grafana_data:/var/lib/grafana
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
@@ -141,6 +141,23 @@ services:
       - loki
     networks:
       - observability
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.7
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Set CLOUDFLARE_TUNNEL_TOKEN in the VPS .env}
+    depends_on:
+      - grafana
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - observability
+      - tunnel_egress
 
 volumes:
   certs:
@@ -157,5 +174,6 @@ networks:
     external: true
   observability:
     internal: true
+  tunnel_egress:
 
 #end of file
