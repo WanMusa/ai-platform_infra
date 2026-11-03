@@ -33,6 +33,7 @@ jobs:
           assert tunnel["environment"]["TUNNEL_TOKEN"]
           assert socket_proxy.get("read_only") is True
           assert "/tmp" in socket_proxy.get("tmpfs", [])
+          assert "/run" in socket_proxy.get("tmpfs", [])
           print("Grafana is private and routed through Cloudflare Tunnel")
           '
 
